@@ -21,13 +21,13 @@ func NewGinEngine(opts Options) *gin.Engine {
 	engine := gin.New()
 	engine.Use(gin.Logger(), gin.Recovery())
 
-	api := engine.Group("/api/v1")
+	admin := engine.Group("/api/v1/admin")
 	if opts.PersonHandler != nil {
-		opts.PersonHandler.Register(api)
+		opts.PersonHandler.Register(admin)
 	}
 
 	// Health probe for readiness checks.
-	engine.GET("/healthz", func(c *gin.Context) {
+	engine.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok"})
 	})
 
