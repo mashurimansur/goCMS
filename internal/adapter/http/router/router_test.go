@@ -29,7 +29,7 @@ func TestNewGinEngine_WithHandler(t *testing.T) {
 	}
 
 	rec := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodGet, "/api/v1/person", nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/admin/person", nil)
 	engine.ServeHTTP(rec, req)
 
 	if rec.Code != http.StatusOK {
@@ -43,16 +43,16 @@ func TestNewGinEngine_HealthAndMissingHandler(t *testing.T) {
 
 	// Person route should be missing without handler.
 	missing := httptest.NewRecorder()
-	engine.ServeHTTP(missing, httptest.NewRequest(http.MethodGet, "/api/v1/person", nil))
+	engine.ServeHTTP(missing, httptest.NewRequest(http.MethodGet, "/api/v1/admin/person", nil))
 	if missing.Code != http.StatusNotFound {
 		t.Fatalf("expected 404 when no handler registered, got %d", missing.Code)
 	}
 
 	// Healthz route always available.
 	health := httptest.NewRecorder()
-	engine.ServeHTTP(health, httptest.NewRequest(http.MethodGet, "/healthz", nil))
+	engine.ServeHTTP(health, httptest.NewRequest(http.MethodGet, "/health", nil))
 	if health.Code != http.StatusOK {
-		t.Fatalf("expected 200 on /healthz, got %d", health.Code)
+		t.Fatalf("expected 200 on /health, got %d", health.Code)
 	}
 }
 
