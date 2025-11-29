@@ -1,0 +1,51 @@
+# .github/workflows/go.yml
+name: Go
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.20'
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Run unit tests (cicd/unit_test.sh)
+        run: |
+          chmod +x cicd/unit_test.sh
+          # pastikan GOPATH/bin masuk PATH supaya gotestsum yang di-install bisa kepanggil
+          export PATH="$(go env GOPATH)/bin:$PATH"
+          ./cicd/unit_test.sh
+
+      - name: Enforce coverage >= 80%
+        run: |
+          if [ ! -f code_coverage_results ]; then
+            echo "code_coverage_results file tidak ditemukan. Pastikan cicd/unit_test.sh membuat file ini."
+            exit 1
+          fi
+
+          # baca nilai coverage dari file yang dibuat script
+          CODE_COVERAGE=$(grep code_coverage code_coverage_results | cut -d= -f2)
+          echo "Total coverage dari script: ${CODE_COVERAGE}%"
+
+          MIN_COVERAGE=80
+          # ambil integer-nya saja (misal 82.53 -> 82)
+          COV_INT=${CODE_COVERAGE%.*}
+
+          if [ "$COV_INT" -lt "$MIN_COVERAGE" ]; then
+            echo "Coverage ${CODE_COVERAGE}% di bawah minimum ${MIN_COVERAGE}%"
+            exit 1
+          else
+            echo "Coverage OK (>= ${MIN_COVERAGE}%)"
+          fi
