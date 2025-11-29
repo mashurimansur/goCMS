@@ -30,15 +30,15 @@ jobs:
           go env GOPATH
           go env GOTOOLCHAIN
 
-      - name: Run unit tests (cicd/unit_test.sh)
+      - name: Run unit tests (.github/scripts/unit_test.sh)
         run: |
-          chmod +x cicd/unit_test.sh
-          ./cicd/unit_test.sh
+          chmod +x .github/scripts/unit_test.sh
+          ./.github/scripts/unit_test.sh
 
       - name: Enforce coverage >= 80%
         run: |
           if [ ! -f code_coverage_results ]; then
-            echo "code_coverage_results file tidak ditemukan. Pastikan cicd/unit_test.sh membuat file ini."
+            echo "code_coverage_results file tidak ditemukan. Pastikan .github/scripts/unit_test.sh membuat file ini."
             exit 1
           fi
 
