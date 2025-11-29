@@ -2,111 +2,170 @@ package database
 
 import (
 	"context"
+	"database/sql"
+	"database/sql/driver"
+	"errors"
 	"testing"
 	"time"
-
-	"github.com/DATA-DOG/go-sqlmock"
 )
 
-func TestNewConnection_EmptyConfig(t *testing.T) {
-	conn, err := NewConnection(context.Background(), Config{})
+// --- Fake drivers to avoid real DB connections ---
+
+// successDriver will always open a connection whose Ping succeeds.
+type successDriver struct{}
+
+func (d *successDriver) Open(name string) (driver.Conn, error) {
+	return &successConn{}, nil
+}
+
+type successConn struct{}
+
+func (c *successConn) Prepare(query string) (driver.Stmt, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (c *successConn) Close() error { return nil }
+
+func (c *successConn) Begin() (driver.Tx, error) {
+	return nil, errors.New("not implemented")
+}
+
+// Implement driver.Pinger so db.PingContext succeeds.
+func (c *successConn) Ping(ctx context.Context) error {
+	return nil
+}
+
+// pingFailDriver returns a connection whose Ping always fails.
+type pingFailDriver struct{}
+
+func (d *pingFailDriver) Open(name string) (driver.Conn, error) {
+	return &pingFailConn{}, nil
+}
+
+type pingFailConn struct{}
+
+func (c *pingFailConn) Prepare(query string) (driver.Stmt, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (c *pingFailConn) Close() error { return nil }
+
+func (c *pingFailConn) Begin() (driver.Tx, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (c *pingFailConn) Ping(ctx context.Context) error {
+	return errors.New("ping failed")
+}
+
+// Register fake drivers for tests.
+func init() {
+	sql.Register("successdb", &successDriver{})
+	sql.Register("pingfaildb", &pingFailDriver{})
+}
+
+// --- Tests ---
+
+func TestNewConnection_NoDriverReturnsNoOpConnection(t *testing.T) {
+	ctx := context.Background()
+	cfg := Config{} // Driver empty
+
+	conn, err := NewConnection(ctx, cfg)
 	if err != nil {
-		t.Fatalf("expected nil error for empty config, got %v", err)
-	}
-	if conn == nil || conn.DB != nil {
-		t.Fatalf("expected no-op connection with nil DB")
-	}
-}
-
-func TestNewConnection_WithSQLMock(t *testing.T) {
-	db, mock, err := sqlmock.New(sqlmock.MonitorPingsOption(true))
-	if err != nil {
-		t.Fatalf("failed to create sqlmock: %v", err)
-	}
-	defer db.Close()
-
-	mock.ExpectPing()
-
-	// Create a mock driver connection manually since we can't use sql.Open with sqlmock DSN
-	cfg := Config{
-		Driver:            "mysql",
-		MaxOpenConns:      2,
-		MaxIdleConns:      1,
-		ConnMaxLifetime:   time.Second,
-		ConnectionTimeout: time.Second,
+		t.Fatalf("expected no error, got %v", err)
 	}
 
-	// Test the actual connection setup logic works
-	// We'll just validate the config structure for now
-	if cfg.Driver == "" {
-		t.Fatalf("expected driver to be set")
+	if conn == nil {
+		t.Fatalf("expected non-nil Connection, got nil")
+	}
+
+	if conn.DB != nil {
+		t.Fatalf("expected nil DB on no-op connection, got %v", conn.DB)
 	}
 }
 
-func TestNewConnection_InvalidDriver(t *testing.T) {
+func TestNewConnection_OpenError(t *testing.T) {
+	ctx := context.Background()
 	cfg := Config{
-		Driver:   "invalid_driver",
-		Username: "root",
-		Password: "password",
-		Address:  "localhost",
-		Port:     "3306",
+		Driver: "unknown-driver", // not registered -> sql.Open should fail
 	}
 
-	_, err := NewConnection(context.Background(), cfg)
+	conn, err := NewConnection(ctx, cfg)
 	if err == nil {
-		t.Fatalf("expected error for invalid driver")
+		t.Fatalf("expected error when opening with unknown driver, got nil")
+	}
+
+	if conn != nil {
+		t.Fatalf("expected nil Connection on error, got %+v", conn)
 	}
 }
 
-func TestNewConnection_PingTimeout(t *testing.T) {
+func TestNewConnection_Success(t *testing.T) {
+	ctx := context.Background()
 	cfg := Config{
-		Driver:            "mysql",
-		Username:          "root",
-		Password:          "invalid",
-		Address:           "invalid-host",
-		Port:              "3306",
-		DatabaseName:      "test",
-		Protocol:          "tcp",
-		ConnectionTimeout: 1 * time.Millisecond, // Very short timeout
-	}
-
-	// This should fail due to connection timeout
-	_, err := NewConnection(context.Background(), cfg)
-	if err == nil {
-		t.Fatalf("expected error on invalid connection")
-	}
-}
-
-func TestConnection_CloseNilSafe(t *testing.T) {
-	var conn *Connection
-	if err := conn.Close(); err != nil {
-		t.Fatalf("expected nil error for nil receiver, got %v", err)
-	}
-
-	empty := &Connection{}
-	if err := empty.Close(); err != nil {
-		t.Fatalf("expected nil error for empty connection, got %v", err)
-	}
-}
-
-func TestConfig_Structure(t *testing.T) {
-	cfg := Config{
-		Driver:          "mysql",
-		Username:        "root",
+		Driver:          "successdb",
+		Username:        "user",
 		Password:        "pass",
+		Protocol:        "tcp",
 		Address:         "localhost",
 		Port:            "3306",
 		DatabaseName:    "testdb",
-		Protocol:        "tcp",
 		MaxOpenConns:    10,
 		MaxIdleConns:    5,
-		ConnMaxLifetime: time.Second * 30,
+		ConnMaxLifetime: time.Minute,
+		// ConnectionTimeout > 0 so it uses provided value, not default
+		ConnectionTimeout: 2 * time.Second,
 	}
 
-	if cfg.Driver != "mysql" {
-		t.Fatalf("expected driver to be mysql")
+	conn, err := NewConnection(ctx, cfg)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
 	}
-	if cfg.MaxOpenConns != 10 {
-		t.Fatalf("expected MaxOpenConns to be 10")
+
+	if conn == nil || conn.DB == nil {
+		t.Fatalf("expected valid DB connection, got %+v", conn)
+	}
+
+	// Ensure Close works when DB is initialized.
+	if err := conn.Close(); err != nil {
+		t.Fatalf("expected no error closing DB, got %v", err)
+	}
+}
+
+func TestNewConnection_PingErrorAndDefaultTimeout(t *testing.T) {
+	ctx := context.Background()
+	cfg := Config{
+		Driver:       "pingfaildb",
+		Username:     "user",
+		Password:     "pass",
+		Protocol:     "tcp",
+		Address:      "localhost",
+		Port:         "3306",
+		DatabaseName: "testdb",
+		// ConnectionTimeout <= 0 triggers default (5 * time.Second)
+		ConnectionTimeout: 0,
+	}
+
+	conn, err := NewConnection(ctx, cfg)
+	if err == nil {
+		t.Fatalf("expected error from PingContext, got nil")
+	}
+
+	if conn != nil {
+		t.Fatalf("expected nil Connection on ping error, got %+v", conn)
+	}
+}
+
+func TestConnectionClose_NoOp(t *testing.T) {
+	// Case 1: nil receiver
+	var conn *Connection
+	if err := conn.Close(); err != nil {
+		t.Fatalf("expected nil error when closing nil connection, got %v", err)
+	}
+
+	// Case 2: non-nil Connection but nil DB
+	conn = &Connection{}
+	if err := conn.Close(); err != nil {
+		t.Fatalf("expected nil error when closing connection with nil DB, got %v", err)
 	}
 }
