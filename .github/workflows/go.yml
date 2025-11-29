@@ -10,6 +10,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GOTOOLCHAIN: go1.25.3+auto
     steps:
       - uses: actions/checkout@v4
 
@@ -21,11 +23,16 @@ jobs:
       - name: Build
         run: go build -v ./...
 
+      - name: Setup Go PATH
+        run: |
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          go version
+          go env GOPATH
+          go env GOTOOLCHAIN
+
       - name: Run unit tests (cicd/unit_test.sh)
         run: |
           chmod +x cicd/unit_test.sh
-          # pastikan GOPATH/bin masuk PATH supaya gotestsum yang di-install bisa kepanggil
-          export PATH="$(go env GOPATH)/bin:$PATH"
           ./cicd/unit_test.sh
 
       - name: Enforce coverage >= 80%
