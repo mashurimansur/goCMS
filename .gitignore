@@ -1,2 +1,6 @@
 .env
 tmp
+
+code_coverage_results
+coverage.out
+coverage.out.temp

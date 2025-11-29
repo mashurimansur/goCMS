@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="23" failures="0" errors="0" time="0.107166">
+	<testsuite tests="0" failures="0" time="0.107000" name="github.com/mashurimansur/goCMS/cmd/server" timestamp="2025-11-29T16:19:23+07:00">
+		<properties>
+			<property name="go.version" value="go1.25.3 darwin/arm64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="2" failures="0" time="0.000000" name="github.com/mashurimansur/goCMS/internal/adapter/http/handler" timestamp="2025-11-29T16:19:23+07:00">
+		<properties>
+			<property name="go.version" value="go1.25.3 darwin/arm64"></property>
+		</properties>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/adapter/http/handler" name="TestGetDefaultPerson_Success" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/adapter/http/handler" name="TestGetDefaultPerson_Error" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="2" failures="0" time="0.000000" name="github.com/mashurimansur/goCMS/internal/adapter/http/router" timestamp="2025-11-29T16:19:23+07:00">
+		<properties>
+			<property name="go.version" value="go1.25.3 darwin/arm64"></property>
+		</properties>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/adapter/http/router" name="TestNewGinEngine_WithHandler" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/adapter/http/router" name="TestNewGinEngine_HealthAndMissingHandler" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="6" failures="0" time="0.001000" name="github.com/mashurimansur/goCMS/internal/app" timestamp="2025-11-29T16:19:23+07:00">
+		<properties>
+			<property name="go.version" value="go1.25.3 darwin/arm64"></property>
+		</properties>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/app" name="TestBuildPersonRepository" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/app" name="TestApplicationNew_WithMissingDBConfig" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/app" name="TestApplicationNew_Success" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/app" name="TestApplicationRun_DefaultAddress" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/app" name="TestApplicationRun_RequiresEngine" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/app" name="TestApplicationClose_NilSafe" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="github.com/mashurimansur/goCMS/internal/domain/person" timestamp="2025-11-29T16:19:23+07:00">
+		<properties>
+			<property name="go.version" value="go1.25.3 darwin/arm64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="3" failures="0" time="0.000000" name="github.com/mashurimansur/goCMS/internal/repository/person" timestamp="2025-11-29T16:19:23+07:00">
+		<properties>
+			<property name="go.version" value="go1.25.3 darwin/arm64"></property>
+		</properties>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/repository/person" name="TestNew_WithNilDB" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/repository/person" name="TestGetDefault_Success" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/repository/person" name="TestGetDefault_NoRows" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="2" failures="0" time="0.000000" name="github.com/mashurimansur/goCMS/internal/usecase/person" timestamp="2025-11-29T16:19:23+07:00">
+		<properties>
+			<property name="go.version" value="go1.25.3 darwin/arm64"></property>
+		</properties>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/usecase/person" name="TestGetDefaultPerson_NilRepository" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/usecase/person" name="TestGetDefaultPerson_Success" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="4" failures="0" time="0.000000" name="github.com/mashurimansur/goCMS/internal/utils/config" timestamp="2025-11-29T16:19:23+07:00">
+		<properties>
+			<property name="go.version" value="go1.25.3 darwin/arm64"></property>
+		</properties>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/utils/config" name="TestLoad_FromEnvFile" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/utils/config" name="TestLoad_UsesDefaultsWhenMissing" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/utils/config" name="TestEnvOrDefault" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/utils/config" name="TestLoadEnvFiles" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="4" failures="0" time="0.000000" name="github.com/mashurimansur/goCMS/internal/utils/database" timestamp="2025-11-29T16:19:23+07:00">
+		<properties>
+			<property name="go.version" value="go1.25.3 darwin/arm64"></property>
+		</properties>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/utils/database" name="TestNewConnection_EmptyConfig" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/utils/database" name="TestNewConnection_WithSQLMock" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/utils/database" name="TestNewConnection_PingFailure" time="0.000000"></testcase>
+		<testcase classname="github.com/mashurimansur/goCMS/internal/utils/database" name="TestConnection_CloseNilSafe" time="0.000000"></testcase>
+	</testsuite>
+</testsuites>
