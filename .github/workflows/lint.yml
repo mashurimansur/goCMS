@@ -1,0 +1,38 @@
+name: Golang Lint
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  golangci-lint:
+    name: Run GolangCI-Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25.3"
+
+      - name: Cache GolangCI-Lint
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/golangci-lint
+          key: golangci-lint-${{ runner.os }}-${{ hashFiles('**/go.sum') }}
+
+      - name: Install GolangCI-Lint v2.6.2
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+            | sh -s -- -b $(go env GOPATH)/bin v2.6.2
+
+      - name: Run Linter (Warning Only)
+        run: |
+          export PATH=$(go env GOPATH)/bin:$PATH
+          golangci-lint version
+          golangci-lint run ./... --issues-exit-code=0

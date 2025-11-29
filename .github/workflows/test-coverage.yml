@@ -1,5 +1,4 @@
-# .github/workflows/go.yml
-name: Go
+name: Test Coverage
 
 on:
   push:
@@ -8,7 +7,7 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  coverage:
     runs-on: ubuntu-latest
     env:
       GOTOOLCHAIN: go1.25.3+auto
@@ -18,19 +17,13 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: "1.23"
-
-      - name: Build
-        run: go build -v ./...
+          go-version: "1.25.3"
 
       - name: Setup Go PATH
         run: |
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-          go version
-          go env GOPATH
-          go env GOTOOLCHAIN
 
-      - name: Run unit tests (.github/scripts/unit_test.sh)
+      - name: Run unit tests with coverage
         run: |
           chmod +x .github/scripts/unit_test.sh
           ./.github/scripts/unit_test.sh
@@ -38,20 +31,18 @@ jobs:
       - name: Enforce coverage >= 80%
         run: |
           if [ ! -f code_coverage_results ]; then
-            echo "code_coverage_results file tidak ditemukan. Pastikan .github/scripts/unit_test.sh membuat file ini."
+            echo "code_coverage_results file not found"
             exit 1
           fi
 
-          # baca nilai coverage dari file yang dibuat script
           CODE_COVERAGE=$(grep code_coverage code_coverage_results | cut -d= -f2)
-          echo "Total coverage dari script: ${CODE_COVERAGE}%"
+          echo "Total coverage: ${CODE_COVERAGE}%"
 
           MIN_COVERAGE=80
-          # ambil integer-nya saja (misal 82.53 -> 82)
           COV_INT=${CODE_COVERAGE%.*}
 
           if [ "$COV_INT" -lt "$MIN_COVERAGE" ]; then
-            echo "Coverage ${CODE_COVERAGE}% di bawah minimum ${MIN_COVERAGE}%"
+            echo "Coverage ${CODE_COVERAGE}% is below minimum ${MIN_COVERAGE}%"
             exit 1
           else
             echo "Coverage OK (>= ${MIN_COVERAGE}%)"
