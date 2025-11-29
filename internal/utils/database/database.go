@@ -2,17 +2,20 @@ package database
 
 import (
 	"context"
-	"crypto/tls"
 	"database/sql"
+	"fmt"
 	"time"
-
-	"github.com/go-sql-driver/mysql"
 )
 
 // Config supplies database connectivity details. All fields are optional for now.
 type Config struct {
 	Driver            string
-	DSN               string
+	Username          string
+	Password          string
+	Address           string
+	Port              string
+	DatabaseName      string
+	Protocol          string
 	MaxOpenConns      int
 	MaxIdleConns      int
 	ConnMaxLifetime   time.Duration
@@ -28,16 +31,14 @@ type Connection struct {
 // When driver or DSN are empty the function returns a no-op connection so the
 // rest of the application can continue to run without a database.
 func NewConnection(ctx context.Context, cfg Config) (*Connection, error) {
-	if cfg.Driver == "" || cfg.DSN == "" {
+	if cfg.Driver == "" {
 		return &Connection{}, nil
 	}
 
-	mysql.RegisterTLSConfig("tidb", &tls.Config{
-		MinVersion: tls.VersionTLS12,
-		ServerName: "gateway01.ap-southeast-1.prod.aws.tidbcloud.com",
-	})
+	dsn := fmt.Sprintf("%s:%s@%s(%s:%s)/%s",
+		cfg.Username, cfg.Password, cfg.Protocol, cfg.Address, cfg.Port, cfg.DatabaseName)
 
-	db, err := sql.Open(cfg.Driver, cfg.DSN)
+	db, err := sql.Open(cfg.Driver, dsn)
 	if err != nil {
 		return nil, err
 	}

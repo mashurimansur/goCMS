@@ -31,8 +31,13 @@ func Load(envFiles ...string) (AppConfig, error) {
 		HTTPAddr: envOrDefault("HTTP_ADDR", ":8080"),
 		GinMode:  os.Getenv("GIN_MODE"),
 		Database: database.Config{
-			Driver: os.Getenv("DB_DRIVER"),
-			DSN:    os.Getenv("DB_DSN"),
+			Driver:       os.Getenv("DB_DRIVER"),
+			Username:     os.Getenv("DB_USERNAME"),
+			Password:     os.Getenv("DB_PASSWORD"),
+			Address:      os.Getenv("DB_ADDRESS"),
+			Port:         os.Getenv("DB_PORT"),
+			DatabaseName: os.Getenv("DB_NAME"),
+			Protocol:     os.Getenv("DB_PROTOCOL"),
 		},
 	}
 

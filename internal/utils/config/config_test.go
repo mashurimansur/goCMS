@@ -32,7 +32,7 @@ func TestLoad_FromEnvFile(t *testing.T) {
 	if cfg.GinMode != "release" {
 		t.Fatalf("unexpected GinMode: %s", cfg.GinMode)
 	}
-	if cfg.Database.Driver != "postgres" || cfg.Database.DSN != "postgres://user:pass@localhost/db" {
+	if cfg.Database.Driver != "postgres" {
 		t.Fatalf("unexpected database config: %+v", cfg.Database)
 	}
 }
@@ -54,7 +54,7 @@ func TestLoad_UsesDefaultsWhenMissing(t *testing.T) {
 	if cfg.GinMode != "" {
 		t.Fatalf("expected empty GinMode, got %s", cfg.GinMode)
 	}
-	if cfg.Database.Driver != "" || cfg.Database.DSN != "" {
+	if cfg.Database.Driver != "" {
 		t.Fatalf("expected empty database config, got %+v", cfg.Database)
 	}
 }
