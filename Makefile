@@ -21,6 +21,7 @@ install-tools: ## Install development tools
 	@echo "$(GREEN)Installing development tools...$(NC)"
 	go install gotest.tools/gotestsum@v1.12.3
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install github.com/pressly/goose/v3/cmd/goose@latest
 	@echo "$(GREEN)✓ Tools installed$(NC)"
 
 build: ## Build the application

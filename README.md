@@ -39,6 +39,8 @@ goCMS/
 
 Install Goose:
 ```bash
+make install-tools
+# or
 go install github.com/pressly/goose/v3/cmd/goose@latest
 # or on macOS
 brew install goose
