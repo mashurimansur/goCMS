@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"errors"
+	"fmt"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
@@ -10,9 +12,12 @@ import (
 	"github.com/mashurimansur/goCMS/internal/adapter/http/router"
 	domainperson "github.com/mashurimansur/goCMS/internal/domain/person"
 	sqlperson "github.com/mashurimansur/goCMS/internal/repository/person"
+	sqluser "github.com/mashurimansur/goCMS/internal/repository/user"
 	personusecase "github.com/mashurimansur/goCMS/internal/usecase/person"
+	userusecase "github.com/mashurimansur/goCMS/internal/usecase/user"
 	"github.com/mashurimansur/goCMS/internal/utils/config"
 	"github.com/mashurimansur/goCMS/internal/utils/database"
+	"github.com/mashurimansur/goCMS/internal/utils/token"
 )
 
 // Application wires all layers (infrastructure, use cases, delivery) so main can remain minimal.
@@ -28,18 +33,32 @@ func New(ctx context.Context, cfg config.AppConfig) (*Application, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	personRepo, err := buildPersonRepository(dbConn)
 	if err != nil {
 		return nil, err
 	}
-
 	personUseCase := personusecase.New(personRepo)
 	personHandler := handler.NewPersonHandler(personUseCase)
+
+	tokenMaker, err := token.NewPasetoMaker(cfg.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
+
+	tokenDuration, err := time.ParseDuration(cfg.TokenDuration)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse token duration: %w", err)
+	}
+
+	userRepo := sqluser.NewUserRepository(dbConn.DB)
+	userUseCase := userusecase.NewUserUseCase(userRepo, tokenMaker, tokenDuration)
+	userHandler := handler.NewUserHandler(userUseCase)
 
 	engine := router.NewGinEngine(router.Options{
 		Mode:          cfg.GinMode,
 		PersonHandler: personHandler,
+		UserHandler:   userHandler,
+		TokenMaker:    tokenMaker,
 	})
 
 	app := &Application{

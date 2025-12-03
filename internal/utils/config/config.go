@@ -11,9 +11,11 @@ import (
 
 // AppConfig aggregates all runtime configuration required by the application.
 type AppConfig struct {
-	HTTPAddr string
-	GinMode  string
-	Database database.Config
+	HTTPAddr          string
+	GinMode           string
+	TokenSymmetricKey string
+	TokenDuration     string
+	Database          database.Config
 }
 
 // Load reads the provided .env files (if present) and maps environment variables to AppConfig.
@@ -28,8 +30,10 @@ func Load(envFiles ...string) (AppConfig, error) {
 	}
 
 	cfg := AppConfig{
-		HTTPAddr: envOrDefault("HTTP_ADDR", ":8080"),
-		GinMode:  os.Getenv("GIN_MODE"),
+		HTTPAddr:          envOrDefault("HTTP_ADDR", ":8080"),
+		GinMode:           os.Getenv("GIN_MODE"),
+		TokenSymmetricKey: envOrDefault("TOKEN_SYMMETRIC_KEY", "12345678901234567890123456789012"), // Default 32 chars
+		TokenDuration:     envOrDefault("TOKEN_DURATION", "24h"),
 		Database: database.Config{
 			Driver:       os.Getenv("DB_DRIVER"),
 			Username:     os.Getenv("DB_USERNAME"),
