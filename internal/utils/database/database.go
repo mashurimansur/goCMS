@@ -35,7 +35,7 @@ func NewConnection(ctx context.Context, cfg Config) (*Connection, error) {
 		return &Connection{}, nil
 	}
 
-	dsn := fmt.Sprintf("%s:%s@%s(%s:%s)/%s",
+	dsn := fmt.Sprintf("%s:%s@%s(%s:%s)/%s?parseTime=true",
 		cfg.Username, cfg.Password, cfg.Protocol, cfg.Address, cfg.Port, cfg.DatabaseName)
 
 	db, err := sql.Open(cfg.Driver, dsn)
